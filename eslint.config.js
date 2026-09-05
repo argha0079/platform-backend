@@ -19,7 +19,7 @@ export default [
             'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
             'no-console': 'warn',
 
-            'import/no-unresolved': ['error', { ignore: ['generated'] }],
+            'import/no-unresolved': 'error',
             'import/named': 'error',
             'import/no-duplicates': 'warn',
 
@@ -37,7 +37,7 @@ export default [
             globals: {
                 process: 'readonly',
                 console: 'readonly',
-                setTimeout: 'readonly',   // add this
+                setTimeout: 'readonly',
                 clearTimeout: 'readonly',
             },
         },
@@ -50,19 +50,17 @@ export default [
     },
 
     {
-        files: ['**/*.test.js'],
+        files: ['src/config/dbConfig.js'],
         rules: {
-            'no-unused-vars': 'off',
-            'no-console': 'off',
+            'import/no-unresolved': 'off',
         },
     },
 
     {
-        // generated/prisma is gitignored (created by `prisma generate`), so eslint
-        // cannot resolve it on a fresh checkout / CI before the build step runs.
-        files: ['src/config/dbConfig.js'],
+        files: ['**/*.test.js'],
         rules: {
-            'import/no-unresolved': 'off',
+            'no-unused-vars': 'off',
+            'no-console': 'off',
         },
     },
 
