@@ -19,7 +19,7 @@ export default [
             'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
             'no-console': 'warn',
 
-            'import/no-unresolved': 'error',
+            'import/no-unresolved': ['error', { ignore: ['.*/generated/.*'] }],
             'import/named': 'error',
             'import/no-duplicates': 'warn',
 
@@ -67,6 +67,6 @@ export default [
     },
 
     {
-        ignores: ['node_modules/', 'logs/', 'coverage/', 'prisma/'],
+        ignores: ['node_modules/', 'logs/', 'coverage/', 'prisma/', 'generated/'],
     },
 ];
