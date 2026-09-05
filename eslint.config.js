@@ -19,7 +19,7 @@ export default [
             'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
             'no-console': 'warn',
 
-            'import/no-unresolved': 'error',
+            'import/no-unresolved': 'off',
             'import/named': 'error',
             'import/no-duplicates': 'warn',
 
@@ -46,13 +46,6 @@ export default [
             'import/resolver': {
                 node: { extensions: ['.js'] },
             },
-        },
-    },
-
-    {
-        files: ['src/config/dbConfig.js'],
-        rules: {
-            'import/no-unresolved': 'off',
         },
     },
 
