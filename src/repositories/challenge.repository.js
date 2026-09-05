@@ -1,168 +1,141 @@
-import { prisma } from "../config/dbConfig.js";
-
+import { prisma } from '../config/dbConfig.js';
 
 class ChallengeRepository {
-
     async create(challengeData) {
-
         const challenge = await prisma.challenge.create({
-            data: challengeData
+            data: challengeData,
         });
 
         return challenge;
-
     }
 
-
     async findById(challengeId) {
-
         const challenge = await prisma.challenge.findUnique({
             where: {
-                id: challengeId
+                id: challengeId,
             },
             include: {
                 media: true,
                 assignments: {
                     include: {
-                        organization: true
-                    }
+                        organization: true,
+                    },
                 },
-                project: true
-            }
+                project: true,
+            },
         });
 
         return challenge;
-
     }
-
 
     async update(challengeId, challengeData) {
-
         const challenge = await prisma.challenge.update({
             where: {
-                id: challengeId
+                id: challengeId,
             },
-            data: challengeData
+            data: challengeData,
         });
 
         return challenge;
-
     }
 
-
     async createMedia(mediaData) {
-
         const media = await prisma.challengeMedia.create({
-            data: mediaData
+            data: mediaData,
         });
 
         return media;
-
     }
 
-
     async findByUserId(userId) {
-
         const challenges = await prisma.challenge.findMany({
             where: {
-                userId
+                userId,
             },
             include: {
-                media: true
+                media: true,
             },
             orderBy: {
-                createdAt: "desc"
-            }
+                createdAt: 'desc',
+            },
         });
 
         return challenges;
-
     }
 
-
     async findSimilarityTexts(excludeChallengeId) {
-
         const challenges = await prisma.challenge.findMany({
             where: {
                 id: {
-                    not: excludeChallengeId
+                    not: excludeChallengeId,
                 },
                 status: {
-                    not: "FAILED"
+                    not: 'FAILED',
                 },
                 unifiedText: {
-                    not: null
-                }
+                    not: null,
+                },
             },
             select: {
                 id: true,
                 title: true,
-                unifiedText: true
+                unifiedText: true,
             },
             orderBy: {
-                createdAt: "desc"
+                createdAt: 'desc',
             },
-            take: 100
+            take: 100,
         });
 
         const candidates = challenges.map((challenge) => ({
             id: challenge.id,
             title: challenge.title,
-            unifiedText: challenge.unifiedText
+            unifiedText: challenge.unifiedText,
         }));
 
-        return candidates.filter(
-            (candidate) => !!candidate.unifiedText
-        );
-
+        return candidates.filter((candidate) => !!candidate.unifiedText);
     }
 
     async findOpenChallenges() {
-
         const challenges = await prisma.challenge.findMany({
             where: {
                 status: {
-                    in: ["SUBMITTED", "ASSIGNED", "NEEDS_REASSIGNMENT"]
-                }
+                    in: ['SUBMITTED', 'ASSIGNED', 'NEEDS_REASSIGNMENT'],
+                },
             },
             include: {
                 media: true,
                 assignments: {
                     include: {
-                        organization: true
-                    }
+                        organization: true,
+                    },
                 },
                 user: {
                     select: {
                         id: true,
                         name: true,
                         email: true,
-                        phone: true
-                    }
-                }
+                        phone: true,
+                    },
+                },
             },
             orderBy: {
-                createdAt: "desc"
-            }
+                createdAt: 'desc',
+            },
         });
 
         return challenges;
-
     }
 
-
     async findRawById(challengeId) {
-
         const challenge = await prisma.challenge.findUnique({
             where: {
-                id: challengeId
-            }
+                id: challengeId,
+            },
         });
 
         return challenge;
-
     }
-
 }
 
 export default ChallengeRepository;

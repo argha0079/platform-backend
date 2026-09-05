@@ -1,26 +1,20 @@
-import { prisma } from "../config/dbConfig.js";
-
+import { prisma } from '../config/dbConfig.js';
 
 class OrganizationRepository {
-
     async findByUserId(userId) {
-
         const organization = await prisma.organization.findUnique({
             where: {
-                userId
-            }
+                userId,
+            },
         });
 
         return organization;
-
     }
 
-
     async findById(organizationId) {
-
         const organization = await prisma.organization.findUnique({
             where: {
-                id: organizationId
+                id: organizationId,
             },
             include: {
                 user: {
@@ -29,246 +23,204 @@ class OrganizationRepository {
                         name: true,
                         email: true,
                         phone: true,
-                        role: true
-                    }
-                }
-            }
+                        role: true,
+                    },
+                },
+            },
         });
 
         return organization;
-
     }
-
 
     async create(organizationData) {
-
         const organization = await prisma.organization.create({
-            data: organizationData
+            data: organizationData,
         });
 
         return organization;
-
     }
-
 
     async update(organizationId, organizationData) {
-
         const organization = await prisma.organization.update({
             where: {
-                id: organizationId
+                id: organizationId,
             },
-            data: organizationData
+            data: organizationData,
         });
 
         return organization;
-
     }
 
-
     async findMatching(category) {
-
         const organizations = await prisma.organization.findMany({
             where: {
                 isActive: true,
                 domains: {
-                    has: category
-                }
+                    has: category,
+                },
             },
             orderBy: {
-                createdAt: "asc"
-            }
+                createdAt: 'asc',
+            },
         });
 
         return organizations;
-
     }
 
-
     async findAll() {
-
         const organizations = await prisma.organization.findMany({
             include: {
                 user: {
                     select: {
                         name: true,
                         email: true,
-                        phone: true
-                    }
+                        phone: true,
+                    },
                 },
                 _count: {
                     select: {
                         assignments: true,
-                        projects: true
-                    }
-                }
+                        projects: true,
+                    },
+                },
             },
             orderBy: {
-                name: "asc"
-            }
+                name: 'asc',
+            },
         });
 
         return organizations;
-
     }
 
-
     async createAssignment(assignmentData) {
-
         const assignment = await prisma.organizationAssignment.create({
             data: assignmentData,
             include: {
                 organization: true,
                 challenge: {
                     include: {
-                        media: true
-                    }
-                }
-            }
+                        media: true,
+                    },
+                },
+            },
         });
 
         return assignment;
-
     }
 
-
     async findAssignmentById(assignmentId) {
-
         const assignment = await prisma.organizationAssignment.findUnique({
             where: {
-                id: assignmentId
+                id: assignmentId,
             },
             include: {
                 organization: true,
                 challenge: {
                     include: {
-                        media: true
-                    }
-                }
-            }
+                        media: true,
+                    },
+                },
+            },
         });
 
         return assignment;
-
     }
 
-
     async findOpenAssignmentsByOrganization(organizationId) {
-
         const assignments = await prisma.organizationAssignment.findMany({
             where: {
                 organizationId,
                 status: {
-                    in: ["PENDING", "ACCEPTED"]
-                }
+                    in: ['PENDING', 'ACCEPTED'],
+                },
             },
             include: {
                 challenge: {
                     include: {
-                        media: true
-                    }
-                }
+                        media: true,
+                    },
+                },
             },
             orderBy: {
-                assignedAt: "desc"
-            }
+                assignedAt: 'desc',
+            },
         });
 
         return assignments;
-
     }
 
-
     async updateAssignment(assignmentId, assignmentData) {
-
         const assignment = await prisma.organizationAssignment.update({
             where: {
-                id: assignmentId
+                id: assignmentId,
             },
             data: assignmentData,
             include: {
                 organization: true,
                 challenge: {
                     include: {
-                        media: true
-                    }
-                }
-            }
+                        media: true,
+                    },
+                },
+            },
         });
 
         return assignment;
-
     }
-
 
     async updateChallengeStatus(challengeId, status) {
-
         await prisma.challenge.update({
             where: {
-                id: challengeId
+                id: challengeId,
             },
             data: {
-                status
-            }
+                status,
+            },
         });
-
     }
 
-
     async countPendingAssignmentsByChallenge(challengeId) {
-
         const count = await prisma.organizationAssignment.count({
             where: {
                 challengeId,
-                status: "PENDING"
-            }
+                status: 'PENDING',
+            },
         });
 
         return count;
-
     }
 
-
     async findChallengeStatus(challengeId) {
-
         const challenge = await prisma.challenge.findUnique({
             where: {
-                id: challengeId
+                id: challengeId,
             },
             select: {
                 id: true,
-                status: true
-            }
+                status: true,
+            },
         });
 
         return challenge;
-
     }
-
 
     // when one org accepts, reject all other still-pending assignments
     // of the same challenge so only one org works on it
-    async rejectPendingAssignmentsByChallenge(
-        challengeId,
-        excludeAssignmentId
-    ) {
-
+    async rejectPendingAssignmentsByChallenge(challengeId, excludeAssignmentId) {
         await prisma.organizationAssignment.updateMany({
             where: {
                 challengeId,
-                status: "PENDING",
+                status: 'PENDING',
                 id: {
-                    not: excludeAssignmentId
-                }
+                    not: excludeAssignmentId,
+                },
             },
             data: {
-                status: "REJECTED",
-                respondedAt: new Date()
-            }
+                status: 'REJECTED',
+                respondedAt: new Date(),
+            },
         });
-
     }
-
 }
-
 
 export default OrganizationRepository;

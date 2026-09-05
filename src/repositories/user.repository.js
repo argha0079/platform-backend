@@ -1,19 +1,19 @@
-import { prisma } from "../config/dbConfig.js";
+import { prisma } from '../config/dbConfig.js';
 
 class UserRepository {
     async findByClerkId(clerkId) {
         const user = await prisma.user.findUnique({
             where: {
-                clerkId
-            }
+                clerkId,
+            },
         });
         return user;
     }
     async findById(userId) {
         const user = await prisma.user.findUnique({
             where: {
-                id: userId
-            }
+                id: userId,
+            },
         });
         return user;
     }
@@ -23,8 +23,8 @@ class UserRepository {
         }
         const user = await prisma.user.findUnique({
             where: {
-                email
-            }
+                email,
+            },
         });
         return user;
     }
@@ -34,14 +34,14 @@ class UserRepository {
         }
         const user = await prisma.user.findUnique({
             where: {
-                phone
-            }
+                phone,
+            },
         });
         return user;
     }
     async create(userData) {
         const user = await prisma.user.create({
-            data: userData
+            data: userData,
         });
         return user;
     }
