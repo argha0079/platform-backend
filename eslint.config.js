@@ -19,7 +19,7 @@ export default [
             'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
             'no-console': 'warn',
 
-            'import/no-unresolved': ['error', { ignore: ['.*/generated/.*'] }],
+            'import/no-unresolved': ['error', { ignore: ['generated'] }],
             'import/named': 'error',
             'import/no-duplicates': 'warn',
 
