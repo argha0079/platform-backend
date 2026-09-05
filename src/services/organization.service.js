@@ -1,4 +1,5 @@
 import OrganizationRepository from "../repositories/organization.repository.js";
+import NotificationService, { NOTIFICATION_TYPES } from "./notification.service.js";
 import { prisma } from "../config/dbConfig.js";
 
 
@@ -19,6 +20,7 @@ class OrganizationService {
     constructor() {
 
         this.organizationRepository = new OrganizationRepository();
+        this.notificationService = new NotificationService();
 
     }
 
@@ -196,6 +198,13 @@ class OrganizationService {
                 source: "AUTOMATIC"
             });
 
+            await this.notificationService.notify(
+                organization.userId,
+                NOTIFICATION_TYPES.CHALLENGE_ASSIGNED,
+                "New challenge assigned",
+                `A new challenge "${assignment.challenge?.title || "Untitled"}" has been assigned to your organization.`
+            );
+
             assignments.push(assignment);
 
         }
@@ -240,6 +249,13 @@ class OrganizationService {
         await this.organizationRepository.updateChallengeStatus(
             challengeId,
             "ASSIGNED"
+        );
+
+        await this.notificationService.notify(
+            organization.userId,
+            NOTIFICATION_TYPES.CHALLENGE_ASSIGNED,
+            "New challenge assigned",
+            `A new challenge "${assignment.challenge?.title || "Untitled"}" has been assigned to your organization.`
         );
 
         return assignment;
@@ -354,6 +370,9 @@ class OrganizationService {
             organizationId: assignedOrganizationId
         } = updated;
 
+        const submitterId = updated.challenge.userId;
+        const challengeTitle = updated.challenge?.title || "Untitled";
+
         // create a project when the org accepts
         if (accept) {
 
@@ -367,8 +386,8 @@ class OrganizationService {
                 data: {
                     challengeId: assignedChallengeId,
                     organizationId: assignedOrganizationId,
-                    title: assignment.challenge.title,
-                    description: assignment.challenge.description,
+                    title: challengeTitle,
+                    description: updated.challenge.description,
                     status: "NOT_STARTED"
                 }
             });
@@ -376,6 +395,49 @@ class OrganizationService {
             await this.organizationRepository.updateChallengeStatus(
                 assignedChallengeId,
                 "IN_PROGRESS"
+            );
+
+            await this.notificationService.notify(
+                submitterId,
+                NOTIFICATION_TYPES.CHALLENGE_ACCEPTED,
+                "Challenge accepted",
+                `Your challenge "${challengeTitle}" has been accepted by an organization.`
+            );
+
+        } else {
+
+            // flag the challenge for reassignment when no organization
+            // has any pending assignment left to respond to
+            const remainingPending = await this.organizationRepository
+                .countPendingAssignmentsByChallenge(assignedChallengeId);
+
+            if (remainingPending === 0) {
+
+                const currentChallenge = await this.organizationRepository
+                    .findChallengeStatus(assignedChallengeId);
+
+                if (
+                    currentChallenge
+                    && currentChallenge.status !== "COMPLETED"
+                    && currentChallenge.status !== "IN_PROGRESS"
+                    && currentChallenge.status !== "PROCESSING"
+                    && currentChallenge.status !== "FAILED"
+                ) {
+
+                    await this.organizationRepository.updateChallengeStatus(
+                        assignedChallengeId,
+                        "NEEDS_REASSIGNMENT"
+                    );
+
+                }
+
+            }
+
+            await this.notificationService.notify(
+                submitterId,
+                NOTIFICATION_TYPES.CHALLENGE_REJECTED,
+                "Challenge rejected",
+                `Your challenge "${challengeTitle}" was rejected by an organization and is waiting for reassignment.`
             );
 
         }

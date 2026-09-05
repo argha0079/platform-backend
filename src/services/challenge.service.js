@@ -543,10 +543,11 @@ class ChallengeService {
             challenge.status !== "SUBMITTED"
             && challenge.status !== "ASSIGNED"
             && challenge.status !== "DUPLICATE"
+            && challenge.status !== "NEEDS_REASSIGNMENT"
         ) {
 
             const error = new Error(
-                "Only submitted, assigned or duplicate challenges can be assigned"
+                "Only submitted, assigned, duplicate or needs-reassignment challenges can be assigned"
             );
             error.statusCode = 400;
             throw error;

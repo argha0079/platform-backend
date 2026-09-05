@@ -214,6 +214,37 @@ class OrganizationRepository {
     }
 
 
+    async countPendingAssignmentsByChallenge(challengeId) {
+
+        const count = await prisma.organizationAssignment.count({
+            where: {
+                challengeId,
+                status: "PENDING"
+            }
+        });
+
+        return count;
+
+    }
+
+
+    async findChallengeStatus(challengeId) {
+
+        const challenge = await prisma.challenge.findUnique({
+            where: {
+                id: challengeId
+            },
+            select: {
+                id: true,
+                status: true
+            }
+        });
+
+        return challenge;
+
+    }
+
+
     // when one org accepts, reject all other still-pending assignments
     // of the same challenge so only one org works on it
     async rejectPendingAssignmentsByChallenge(

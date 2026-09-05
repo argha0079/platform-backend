@@ -1,5 +1,6 @@
 import ProjectRepository from "../repositories/project.repository.js";
 import OrganizationRepository from "../repositories/organization.repository.js";
+import NotificationService, { NOTIFICATION_TYPES } from "./notification.service.js";
 import { prisma } from "../config/dbConfig.js";
 
 
@@ -24,6 +25,7 @@ class ProjectService {
 
         this.projectRepository = new ProjectRepository();
         this.organizationRepository = new OrganizationRepository();
+        this.notificationService = new NotificationService();
 
     }
 
@@ -86,6 +88,8 @@ class ProjectService {
             "ORGANIZATION"
         );
 
+        const previousStatus = project.status;
+
         const updateData = {};
 
         if (projectData.title !== undefined) {
@@ -122,6 +126,17 @@ class ProjectService {
                 }
             });
 
+            if (previousStatus !== "COMPLETED") {
+
+                await this.notificationService.notify(
+                    project.challenge.user.id,
+                    NOTIFICATION_TYPES.PROJECT_COMPLETED,
+                    "Project completed",
+                    `Work on your challenge "${project.title}" has been completed.`
+                );
+
+            }
+
         } else if (
             updateData.status === "IN_PROGRESS"
         ) {
@@ -134,6 +149,17 @@ class ProjectService {
                     status: "IN_PROGRESS"
                 }
             });
+
+            if (previousStatus === "NOT_STARTED") {
+
+                await this.notificationService.notify(
+                    project.challenge.user.id,
+                    NOTIFICATION_TYPES.PROJECT_STARTED,
+                    "Project started",
+                    `Work has started on your challenge "${project.title}".`
+                );
+
+            }
 
         }
 
@@ -189,6 +215,13 @@ class ProjectService {
                     status: "IN_PROGRESS"
                 }
             });
+
+            await this.notificationService.notify(
+                project.challenge.user.id,
+                NOTIFICATION_TYPES.PROJECT_STARTED,
+                "Project started",
+                `Work has started on your challenge "${project.title}".`
+            );
 
         }
 

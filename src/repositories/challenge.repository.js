@@ -122,7 +122,7 @@ class ChallengeRepository {
         const challenges = await prisma.challenge.findMany({
             where: {
                 status: {
-                    in: ["SUBMITTED", "ASSIGNED"]
+                    in: ["SUBMITTED", "ASSIGNED", "NEEDS_REASSIGNMENT"]
                 }
             },
             include: {
