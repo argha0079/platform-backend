@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import { clerkMiddleware } from "@clerk/express";
 import { PORT } from "./config/envConfig.js";
 import { connectDatabase } from "./config/dbConfig.js";
 import apiRouter from "./routes/index.js";
@@ -12,6 +13,7 @@ const setupAndStartServer = async () => {
 
     // middlewares
     app.use(cors());
+    app.use(clerkMiddleware());
     app.use(express.json());
 
     // health check route
@@ -30,7 +32,7 @@ const setupAndStartServer = async () => {
 
     await connectDatabase();
     // start server
-    app.listen(PORT, async () => {
+    app.listen(PORT, () => {
         console.log(`Server started at port ${PORT}`);
     });
 
