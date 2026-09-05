@@ -1,4 +1,5 @@
 import NotificationRepository from '../repositories/notification.repository.js';
+import logger from '../utils/logger.js';
 
 export const NOTIFICATION_TYPES = {
     CHALLENGE_SUBMITTED: 'CHALLENGE_SUBMITTED',
@@ -25,7 +26,7 @@ class NotificationService {
                 message,
             });
         } catch (error) {
-            console.error('Notification failed:', error.message);
+            logger.error('Notification failed:', error.message);
         }
     }
 

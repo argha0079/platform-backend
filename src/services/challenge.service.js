@@ -2,6 +2,7 @@ import ChallengeRepository from '../repositories/challenge.repository.js';
 import MLService, { ML_MAX_CHALLENGE_LENGTH } from './ml.service.js';
 import CloudinaryService from './cloudinary.service.js';
 import OrganizationService from './organization.service.js';
+import logger from '../utils/logger.js';
 
 const ML_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
 const ML_AUDIO_MAX_BYTES = 10 * 1024 * 1024;
@@ -102,6 +103,8 @@ class ChallengeService {
             return await this.mlService.analyzeChallenge(text, imageFile, audioFile);
         } catch (firstError) {
             // one retry after a short pause
+            logger.warn('ML service failed, retrying once:', firstError.message);
+
             await new Promise((resolve) => setTimeout(resolve, 2000));
 
             return this.mlService.analyzeChallenge(text, imageFile, audioFile);
@@ -230,13 +233,13 @@ class ChallengeService {
         try {
             mlResult = await this.callAnalyzeWithRetry(challengeText, imageFile, audioFile);
         } catch (error) {
-            console.error('ML service failed:', error.message);
+            logger.error('ML service failed:', error.message);
             mlFailed = true;
         }
 
         // guard against empty / undefined ML response body
         if (!mlResult) {
-            console.error('ML service returned an empty response');
+            logger.error('ML service returned an empty response');
             mlFailed = true;
         }
 
@@ -246,7 +249,7 @@ class ChallengeService {
         try {
             await this.uploadAllMedia(challenge.id, imageFile, audioFile);
         } catch (error) {
-            console.error('Media upload failed:', error.message);
+            logger.error('Media upload failed:', error.message);
             mediaFailed = true;
         }
 
@@ -278,7 +281,7 @@ class ChallengeService {
 
             Object.assign(updateData, similarityData);
         } catch (error) {
-            console.error('Similarity check failed:', error.message);
+            logger.error('Similarity check failed:', error.message);
             similarityFailed = true;
 
             Object.assign(updateData, {
@@ -299,7 +302,7 @@ class ChallengeService {
             try {
                 await this.organizationService.autoAssign(challenge.id, updateData.category);
             } catch (error) {
-                console.error('Auto-assignment failed:', error.message);
+                logger.error('Auto-assignment failed:', error.message);
                 assignmentFailed = true;
             }
         }

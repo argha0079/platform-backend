@@ -1,4 +1,5 @@
 import { config } from 'dotenv';
+import logger from '../utils/logger.js';
 
 config();
 
@@ -18,7 +19,7 @@ const missingEnvVars = REQUIRED_ENV_VARS.filter(
 );
 
 if (missingEnvVars.length > 0) {
-    console.error(`Missing or unset environment variables: ${missingEnvVars.join(', ')}`);
+    logger.error(`Missing or unset environment variables: ${missingEnvVars.join(', ')}`);
 
     process.exit(1);
 }

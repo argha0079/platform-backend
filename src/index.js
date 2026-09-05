@@ -40,12 +40,12 @@ const setupAndStartServer = async () => {
     });
 
     server.on('error', (error) => {
-        console.error('Server failed to start:', error.message);
+        logger.error('Server failed to start:', error.message);
         process.exit(1);
     });
 };
 
 setupAndStartServer().catch((error) => {
-    console.error('Server startup failed:', error);
+    logger.error('Server startup failed:', error);
     process.exit(1);
 });

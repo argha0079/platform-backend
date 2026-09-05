@@ -58,6 +58,15 @@ export default [
     },
 
     {
+        // generated/prisma is gitignored (created by `prisma generate`), so eslint
+        // cannot resolve it on a fresh checkout / CI before the build step runs.
+        files: ['src/config/dbConfig.js'],
+        rules: {
+            'import/no-unresolved': 'off',
+        },
+    },
+
+    {
         ignores: ['node_modules/', 'logs/', 'coverage/', 'prisma/'],
     },
 ];
