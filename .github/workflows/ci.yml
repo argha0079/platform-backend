@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main, feat/test]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: platform_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Run linter
+        run: npm run lint
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+        env:
+          DATABASE_URL: postgresql://testuser:testpass@localhost:5432/platform_test
+
+      - name: Run migrations
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://testuser:testpass@localhost:5432/platform_test
+
+      - name: Run tests
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://testuser:testpass@localhost:5432/platform_test
+          PORT: 3001
+          CLERK_PUBLISHABLE_KEY: pk_test_fake
+          CLERK_SECRET_KEY: sk_test_fake
+          ML_SERVICE_URL: http://localhost:9999
+          CLOUDINARY_CLOUD_NAME: fake
+          CLOUDINARY_API_KEY: fake
+          CLOUDINARY_API_SECRET: fake
+        run: npm test
+
+      - name: Trigger Render deploy
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
