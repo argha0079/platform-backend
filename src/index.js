@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { PORT } from "./config/envConfig.js";
+import { connectDatabase } from "./config/dbConfig.js";
 import apiRouter from "./routes/index.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 
@@ -27,8 +28,9 @@ const setupAndStartServer = async () => {
     // global error handler
     app.use(errorHandler);
 
+    await connectDatabase();
     // start server
-    app.listen(PORT, () => {
+    app.listen(PORT, async () => {
         console.log(`Server started at port ${PORT}`);
     });
 

@@ -1,0 +1,234 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ========================================
+// ENUMS
+// ========================================
+
+enum UserRole {
+  USER
+  ORGANIZATION
+  ADMIN
+}
+
+enum OrganizationType {
+  GOVERNMENT
+  NGO
+  ACADEMIC_INSTITUTION
+  STARTUP
+  MSME
+  CORPORATE
+  RESEARCH_ORGANIZATION
+  OTHER
+}
+
+enum Domain {
+  EDUCATION
+  HEALTHCARE
+  AGRICULTURE
+  WATER_RESOURCES
+  ENVIRONMENT
+  ENERGY
+  URBAN_DEVELOPMENT
+  ACCESSIBILITY
+  PUBLIC_ADMINISTRATION
+  RURAL_LIVELIHOODS
+}
+
+enum ChallengeStatus {
+  SUBMITTED
+  PROCESSING
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  DUPLICATE
+  NEEDS_REASSIGNMENT
+  FAILED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum MediaType {
+  IMAGE
+  AUDIO
+}
+
+enum AssignmentStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum AssignmentSource {
+  AUTOMATIC
+  ADMIN
+}
+
+enum ProjectStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+
+enum MilestoneStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum NotificationType {
+  CHALLENGE_SUBMITTED
+  CHALLENGE_ASSIGNED
+  CHALLENGE_ACCEPTED
+  CHALLENGE_REJECTED
+  PROJECT_STARTED
+  PROJECT_COMPLETED
+}
+
+// ========================================
+// MODELS
+// ========================================
+
+model User {
+  id            String         @id @default(cuid())
+  clerkId       String         @unique
+  name          String
+  email         String         @unique
+  role          UserRole       @default(USER)
+  challenges    Challenge[]
+  organization  Organization?
+  notifications Notification[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Organization {
+  id          String                   @id @default(cuid())
+  userId      String                   @unique
+  name        String
+  description String?
+  type        OrganizationType
+  domains     Domain[]
+  email       String
+  phone       String?
+  website     String?
+  isVerified  Boolean                  @default(false)
+  isActive    Boolean                  @default(true)
+  user        User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignments OrganizationAssignment[]
+  projects    Project[]
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
+}
+
+model Challenge {
+  id                String                   @id @default(cuid())
+  title             String
+  description       String
+  status            ChallengeStatus          @default(SUBMITTED)
+  userId            String
+  user              User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mlCategory        String?
+  category          Domain?
+  priority          Priority?
+  priorityScore     Float?
+  extractedProblems String[]
+  isDuplicate       Boolean                  @default(false)
+  similarChallenges String[]
+  similarityScore   Float?
+  mlExplanation     String?
+  unifiedText       String?
+  media             ChallengeMedia[]
+  assignments       OrganizationAssignment[]
+  project           Project?
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([category])
+}
+
+model ChallengeMedia {
+  id           String    @id @default(cuid())
+  challengeId  String
+  url          String
+  publicId     String    @unique
+  mediaType    MediaType
+  originalName String?
+  challenge    Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model OrganizationAssignment {
+  id             String           @id @default(cuid())
+  challengeId    String
+  organizationId String
+  status         AssignmentStatus @default(PENDING)
+  source         AssignmentSource @default(AUTOMATIC)
+  remarks        String?
+  assignedAt     DateTime         @default(now())
+  respondedAt    DateTime?
+  challenge      Challenge        @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([challengeId])
+  @@index([organizationId])
+  @@index([status])
+  @@index([challengeId, status])
+}
+
+model Project {
+  id             String        @id @default(cuid())
+  challengeId    String        @unique
+  organizationId String
+  title          String
+  description    String?
+  status         ProjectStatus @default(NOT_STARTED)
+  challenge      Challenge     @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  milestones     Milestone[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model Milestone {
+  id          String          @id @default(cuid())
+  projectId   String
+  title       String
+  description String?
+  status      MilestoneStatus @default(PENDING)
+  dueDate     DateTime?
+  completedAt DateTime?
+  project     Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      NotificationType
+  isRead    Boolean          @default(false)
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
