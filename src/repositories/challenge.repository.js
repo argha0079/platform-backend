@@ -22,7 +22,11 @@ class ChallengeRepository {
             },
             include: {
                 media: true,
-                assignments: true,
+                assignments: {
+                    include: {
+                        organization: true
+                    }
+                },
                 project: true
             }
         });
@@ -91,6 +95,8 @@ class ChallengeRepository {
                 }
             },
             select: {
+                id: true,
+                title: true,
                 unifiedText: true
             },
             orderBy: {
@@ -99,13 +105,64 @@ class ChallengeRepository {
             take: 100
         });
 
-        return challenges
-            .map((challenge) => challenge.unifiedText)
-            .filter(Boolean);
+        const candidates = challenges.map((challenge) => ({
+            id: challenge.id,
+            title: challenge.title,
+            unifiedText: challenge.unifiedText
+        }));
+
+        return candidates.filter(
+            (candidate) => !!candidate.unifiedText
+        );
+
+    }
+
+    async findOpenChallenges() {
+
+        const challenges = await prisma.challenge.findMany({
+            where: {
+                status: {
+                    in: ["SUBMITTED", "ASSIGNED"]
+                }
+            },
+            include: {
+                media: true,
+                assignments: {
+                    include: {
+                        organization: true
+                    }
+                },
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        phone: true
+                    }
+                }
+            },
+            orderBy: {
+                createdAt: "desc"
+            }
+        });
+
+        return challenges;
+
+    }
+
+
+    async findRawById(challengeId) {
+
+        const challenge = await prisma.challenge.findUnique({
+            where: {
+                id: challengeId
+            }
+        });
+
+        return challenge;
 
     }
 
 }
-
 
 export default ChallengeRepository;

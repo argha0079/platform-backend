@@ -55,14 +55,35 @@ export const syncUser = async (req, res, next) => {
                     phone
                 });
             } catch (error) {
-                // handle concurrent creation race on unique clerkId
+                // handle unique constraint violations
                 if (error?.code === "P2002") {
+
+                    const target = error.meta?.target;
+
+                    const targetFields = Array.isArray(target)
+                        ? target
+                        : [target];
+
+                    // conflict on a contact field not owned by this clerk
+                    if (!targetFields.includes("clerkId")) {
+
+                        const conflictError = new Error(
+                            "Email or phone number already in use"
+                        );
+                        conflictError.statusCode = 409;
+                        throw conflictError;
+
+                    }
+
+                    // concurrent creation race on unique clerkId
                     user = await userService.findUserByClerkId(
                         clerkId
                     );
+
                     if (!user) {
                         throw error;
                     }
+
                 } else {
                     throw error;
                 }

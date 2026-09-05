@@ -8,6 +8,54 @@ import {
 
 const ML_TIMEOUT = 60000;
 
+const ML_MAX_CHALLENGE_LENGTH = 5000;
+
+// Content-Types accepted by the ML service (main.py validate_content_type).
+// Map both common browser mimetypes and x-* variants to the whitelist value.
+const CONTENT_TYPE_MAP = {
+    "image/jpeg": "image/jpeg",
+    "image/png": "image/png",
+    "image/webp": "image/webp",
+    "audio/mpeg": "audio/mpeg",
+    "audio/wav": "audio/wav",
+    "audio/x-wav": "audio/wav",
+    "audio/mp4": "audio/mp4",
+    "audio/m4a": "audio/mp4",
+    "audio/x-m4a": "audio/mp4",
+    "audio/webm": "audio/webm",
+    "video/mp4": "audio/mp4"
+};
+
+const EXTENSION_CONTENT_TYPES = {
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    png: "image/png",
+    webp: "image/webp",
+    mp3: "audio/mpeg",
+    wav: "audio/wav",
+    m4a: "audio/mp4",
+    mp4: "audio/mp4",
+    webm: "audio/webm"
+};
+
+
+const resolveContentType = (file) => {
+
+    if (file?.mimetype && CONTENT_TYPE_MAP[file.mimetype]) {
+
+        return CONTENT_TYPE_MAP[file.mimetype];
+
+    }
+
+    const extension = (file?.originalname || "")
+        .split(".")
+        .pop()
+        ?.toLowerCase();
+
+    return EXTENSION_CONTENT_TYPES[extension] || undefined;
+
+};
+
 
 class MLService {
 
@@ -17,29 +65,26 @@ class MLService {
 
     }
 
-
-    async analyzeChallenge(
-        text,
-        imageBuffer = null,
-        imageName = null,
-        audioBuffer = null,
-        audioName = null
-    ) {
+    // imageFile / audioFile are multer file objects (buffer, originalname,
+    // mimetype) or null.
+    async analyzeChallenge(text, imageFile = null, audioFile = null) {
 
         const formData = new FormData();
 
-        if (imageBuffer && imageName) {
+        if (imageFile?.buffer) {
 
-            formData.append("image", imageBuffer, {
-                filename: imageName
+            formData.append("image", imageFile.buffer, {
+                filename: imageFile.originalname,
+                contentType: resolveContentType(imageFile)
             });
 
         }
 
-        if (audioBuffer && audioName) {
+        if (audioFile?.buffer) {
 
-            formData.append("audio", audioBuffer, {
-                filename: audioName
+            formData.append("audio", audioFile.buffer, {
+                filename: audioFile.originalname,
+                contentType: resolveContentType(audioFile)
             });
 
         }
@@ -90,3 +135,6 @@ class MLService {
 
 
 export default MLService;
+export {
+    ML_MAX_CHALLENGE_LENGTH
+};

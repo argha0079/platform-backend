@@ -150,7 +150,6 @@ model Challenge {
   priority          Priority?
   priorityScore     Float?
   mlConfidence      Float?
-  extractedProblems String[]
   extraction        Json?
   isDuplicate       Boolean                  @default(false)
   similarChallenges String[]

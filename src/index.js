@@ -31,11 +31,21 @@ const setupAndStartServer = async () => {
     app.use(errorHandler);
 
     await connectDatabase();
+
     // start server
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
         console.log(`Server started at port ${PORT}`);
+    });
+
+    server.on("error", (error) => {
+        console.error("Server failed to start:", error.message);
+        process.exit(1);
     });
 
 };
 
-setupAndStartServer();
+
+setupAndStartServer().catch((error) => {
+    console.error("Server startup failed:", error);
+    process.exit(1);
+});

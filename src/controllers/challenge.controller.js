@@ -85,10 +85,88 @@ export const getChallengeById = async (req, res, next) => {
 
         }
 
+        // owner, admin or the assigned organization may view a challenge
+        const isOwner = challenge.userId === req.user.id;
+        const isAdmin = req.user.role === "ADMIN";
+
+        const isAssignedOrg = challenge.assignments
+            ?.some(
+                (assignment) => (
+                    assignment.status === "ACCEPTED"
+                    || assignment.status === "PENDING"
+                )
+                && assignment.organization?.userId === req.user.id
+            );
+
+        if (!isOwner && !isAdmin && !isAssignedOrg) {
+
+            const error = new Error("Challenge not found");
+            error.statusCode = 404;
+            throw error;
+
+        }
+
         res.status(200).json({
             success: true,
             message: "Challenge fetched successfully",
             data: challenge
+        });
+
+    } catch (error) {
+
+        next(error);
+
+    }
+
+};
+
+
+export const listOpenChallenges = async (req, res, next) => {
+
+    try {
+
+        const challenges = await challengeService.getOpenChallenges();
+
+        res.status(200).json({
+            success: true,
+            message: "Open challenges fetched successfully",
+            data: challenges
+        });
+
+    } catch (error) {
+
+        next(error);
+
+    }
+
+};
+
+
+export const assignChallenge = async (req, res, next) => {
+
+    try {
+
+        const challengeId = req.params.id;
+        const { organizationId, remarks } = req.body;
+
+        if (!organizationId) {
+
+            const error = new Error("organizationId is required");
+            error.statusCode = 400;
+            throw error;
+
+        }
+
+        const assignment = await challengeService.adminAssignChallenge(
+            challengeId,
+            organizationId,
+            remarks
+        );
+
+        res.status(201).json({
+            success: true,
+            message: "Challenge assigned successfully",
+            data: assignment
         });
 
     } catch (error) {
