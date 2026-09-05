@@ -47,12 +47,26 @@ export const syncUser = async (req, res, next) => {
                 .join(" ") || "User";
 
 
-            user = await userService.createUser({
-                clerkId,
-                name,
-                email,
-                phone
-            });
+            try {
+                user = await userService.createUser({
+                    clerkId,
+                    name,
+                    email,
+                    phone
+                });
+            } catch (error) {
+                // handle concurrent creation race on unique clerkId
+                if (error?.code === "P2002") {
+                    user = await userService.findUserByClerkId(
+                        clerkId
+                    );
+                    if (!user) {
+                        throw error;
+                    }
+                } else {
+                    throw error;
+                }
+            }
         }
         // attach database user to request
         req.user = user;

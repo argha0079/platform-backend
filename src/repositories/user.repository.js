@@ -1,4 +1,5 @@
 import { prisma } from "../config/dbConfig.js";
+
 class UserRepository {
     async findByClerkId(clerkId) {
         const user = await prisma.user.findUnique({
@@ -17,6 +18,9 @@ class UserRepository {
         return user;
     }
     async findByEmail(email) {
+        if (!email) {
+            return null;
+        }
         const user = await prisma.user.findUnique({
             where: {
                 email
@@ -25,6 +29,9 @@ class UserRepository {
         return user;
     }
     async findByPhone(phone) {
+        if (!phone) {
+            return null;
+        }
         const user = await prisma.user.findUnique({
             where: {
                 phone

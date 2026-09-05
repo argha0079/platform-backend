@@ -29,16 +29,19 @@ enum OrganizationType {
 }
 
 enum Domain {
-  EDUCATION
-  HEALTHCARE
+  DISASTER_MANAGEMENT
   AGRICULTURE
-  WATER_RESOURCES
+  HEALTH
+  EDUCATION
+  WATER_SANITATION
+  INFRASTRUCTURE
   ENVIRONMENT
-  ENERGY
+  MINING
+  TRIBAL_WELFARE
+  EMPLOYMENT
   URBAN_DEVELOPMENT
-  ACCESSIBILITY
-  PUBLIC_ADMINISTRATION
-  RURAL_LIVELIHOODS
+  ENERGY
+  OTHER
 }
 
 enum ChallengeStatus {
@@ -103,17 +106,17 @@ enum NotificationType {
 // ========================================
 
 model User {
-  id String @id @default(cuid())
-  clerkId String @unique
-  name String
-  email String? @unique
-  phone String? @unique
-  role UserRole @default(USER)
-  challenges Challenge[]
-  organization Organization?
+  id            String         @id @default(cuid())
+  clerkId       String         @unique
+  name          String
+  email         String?        @unique
+  phone         String?        @unique
+  role          UserRole       @default(USER)
+  challenges    Challenge[]
+  organization  Organization?
   notifications Notification[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
 model Organization {
@@ -146,7 +149,9 @@ model Challenge {
   category          Domain?
   priority          Priority?
   priorityScore     Float?
+  mlConfidence      Float?
   extractedProblems String[]
+  extraction        Json?
   isDuplicate       Boolean                  @default(false)
   similarChallenges String[]
   similarityScore   Float?
