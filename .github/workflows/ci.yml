@@ -64,7 +64,3 @@ jobs:
           CLOUDINARY_API_KEY: fake
           CLOUDINARY_API_SECRET: fake
         run: npm test
-
-      - name: Trigger Render deploy
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
