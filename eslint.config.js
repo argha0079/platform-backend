@@ -51,6 +51,20 @@ export default [
 
     {
         files: ['**/*.test.js'],
+        languageOptions: {
+            globals: {
+                describe: 'readonly',
+                it: 'readonly',
+                test: 'readonly',
+                expect: 'readonly',
+                beforeAll: 'readonly',
+                afterAll: 'readonly',
+                beforeEach: 'readonly',
+                afterEach: 'readonly',
+                jest: 'readonly',
+                Buffer: 'readonly',
+            },
+        },
         rules: {
             'no-unused-vars': 'off',
             'no-console': 'off',

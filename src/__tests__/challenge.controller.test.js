@@ -12,13 +12,8 @@ jest.unstable_mockModule('../services/challenge.service.js', () => ({
     default: jest.fn(() => mockService),
 }));
 
-const {
-    submitChallenge,
-    getMyChallenges,
-    getChallengeById,
-    listOpenChallenges,
-    assignChallenge,
-} = await import('../controllers/challenge.controller.js');
+const { submitChallenge, getMyChallenges, getChallengeById, listOpenChallenges, assignChallenge } =
+    await import('../controllers/challenge.controller.js');
 
 const makeRes = () => {
     const res = {};
@@ -140,9 +135,7 @@ describe('getMyChallenges', () => {
         const res = makeRes();
         await getMyChallenges(makeReq(), res, next);
 
-        expect(res.json).toHaveBeenCalledWith(
-            expect.objectContaining({ data: [] })
-        );
+        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ data: [] }));
     });
 
     it('calls next with error when service throws', async () => {
@@ -245,9 +238,7 @@ describe('getChallengeById', () => {
 
         await getChallengeById(req, makeRes(), next);
 
-        expect(next).toHaveBeenCalledWith(
-            expect.objectContaining({ statusCode: 404 })
-        );
+        expect(next).toHaveBeenCalledWith(expect.objectContaining({ statusCode: 404 }));
     });
 
     it('calls next with error when service throws', async () => {

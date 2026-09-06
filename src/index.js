@@ -7,6 +7,7 @@ import { PORT } from './config/envConfig.js';
 import { connectDatabase } from './config/dbConfig.js';
 import apiRouter from './routes/index.js';
 import { errorHandler } from './middlewares/error.middleware.js';
+import { arcjetMiddleware } from './middlewares/arcjet.middleware.js';
 
 const setupAndStartServer = async () => {
     // create the express object
@@ -14,6 +15,7 @@ const setupAndStartServer = async () => {
 
     // middlewares
     app.use(cors());
+    app.use(arcjetMiddleware);
     app.use(clerkMiddleware());
     app.use(express.json());
     app.use(morganMiddleware);
